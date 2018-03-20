@@ -4,14 +4,10 @@ import(
     "time"
 )
 
-type Workday struct {
-    Date time.Time
-    Tasks []Task
-}
-
 type Task struct {
     FileLine int
     Description string
+    Date time.Time
     Complete bool
 }
 

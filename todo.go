@@ -105,7 +105,7 @@ func ParseTask(cursor *FileCursor) (*Task, error) {
     return &task, nil
 }
 
-func ParseWeekdaySection(cursor *FileCursor) (*Workday, error) {
+func ParseWeekdaySection(cursor *FileCursor) ([]Task, error) {
     fields := strings.Split(cursor.Line(), " - ")
     date, err := time.Parse("Jan 02, 2006", fields[1])
     if err != nil {
@@ -121,6 +121,7 @@ func ParseWeekdaySection(cursor *FileCursor) (*Workday, error) {
                 log.Print("Unable to parse task.", err)
                 continue;
             }
+            task.Date = date
 
             tasks = append(tasks, *task)
         } else {
@@ -128,35 +129,33 @@ func ParseWeekdaySection(cursor *FileCursor) (*Workday, error) {
         }
     }
 
-    return &Workday{date, tasks}, nil
+    return tasks, nil
 }
 
 func main() {
     cursor := NewFileCursor(GlobalTodoFile)
     defer cursor.Close()
 
-    days := []Workday{}
-    
+    tasks := []Task{}
     for cursor.Advance() {
         if isWeekdaySectionLine(cursor.Line()) {
-            day, err := ParseWeekdaySection(cursor)
+            tasksForDay, err := ParseWeekdaySection(cursor)
             if err != nil {
                 log.Print("Unable to parse a weekday section", err)
                 continue
             }
 
-            days = append(days, *day)
+            // STUDY(joe): The ... is kinda cool. It turns the slice into a variadic arguments
+            tasks = append(tasks, tasksForDay...)
         }
     }
 
     // By default, print out all the uncompleted tasks
     taskCount := 0
-    for _, day := range days {
-        for _, task := range day.Tasks {
-            if !task.Complete {
-                fmt.Printf("%d %s\n", task.FileLine, task.Description)
-                taskCount++
-            }
+    for _, task := range tasks {
+        if !task.Complete {
+            fmt.Printf("%d %s\n", task.FileLine, task.Description)
+            taskCount++
         }
     }
     fmt.Println("---")
