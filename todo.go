@@ -19,4 +19,6 @@ func main() {
     }
     fmt.Println("---")
     fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
+
+    WriteTodos(GlobalTodoFile, tasks)
 }

@@ -59,8 +59,7 @@ func ParseTask(cursor *FileCursor) (*Task, error) {
 }
 
 func ParseWeekdaySection(cursor *FileCursor) ([]Task, error) {
-    fields := strings.Split(cursor.Line(), " - ")
-    date, err := time.Parse("Jan 02, 2006", fields[1])
+    date, err := time.Parse("Monday - Jan 02, 2006", cursor.Line())
     if err != nil {
         return nil, err
     }
