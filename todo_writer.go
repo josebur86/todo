@@ -1,14 +1,23 @@
 package main
 
 import(
+    "bufio"
     "fmt"
+    "os"
     "strings"
     "time"
 )
 
 func WriteTodos(filePath string, tasks []Task) error {
-    datesWritten := []time.Time{}    
+    file, err := os.Create(filePath)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
 
+    writer := bufio.NewWriter(file)
+
+    datesWritten := []time.Time{}    
     for _, task := range tasks {
         dateWritten := false
         for _, date := range datesWritten {
@@ -20,11 +29,13 @@ func WriteTodos(filePath string, tasks []Task) error {
 
         if !dateWritten {
             if len(datesWritten) > 0 {
-                fmt.Println()
+                writer.WriteByte('\n')
             }
             dateLine := task.Date.Format("Monday - Jan 2, 2006")
-            fmt.Println(dateLine)
-            fmt.Println(strings.Repeat("=", len(dateLine)))
+            writer.WriteString(dateLine)
+            writer.WriteByte('\n')
+            writer.WriteString(strings.Repeat("=", len(dateLine)))
+            writer.WriteByte('\n')
 
             datesWritten = append(datesWritten, task.Date)
         }
@@ -33,8 +44,10 @@ func WriteTodos(filePath string, tasks []Task) error {
         if task.Complete {
             completedSymbol = "x"
         }
-        fmt.Printf("[%s] %s\n", completedSymbol, task.Description)
+        writer.WriteString(fmt.Sprintf("[%s] %s\n", completedSymbol, task.Description))
     }
+
+    writer.Flush()
 
     return nil
 }
