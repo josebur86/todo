@@ -15,15 +15,25 @@ type CommandDefinition struct {
     RequiresWrite bool
 }
 
-func ListIncompleteTasks(tasks []Task, args []string) []Task {
+func PassesFilter(task Task, filters []string) bool {
+    for _, filter := range filters {
+        if !strings.Contains(task.Description, filter) {
+            return false
+        }
+    }
+
+    return true
+}
+
+func ListTasks(tasks []Task, args []string) []Task {
     taskCount := 0
     for _, task := range tasks {
-        if !task.Complete {
+        if !task.Complete && PassesFilter(task, args) {
             fmt.Printf("%d %s\n", task.FileLine, task.Description)
             taskCount++
         }
     }
-    fmt.Println("---")
+    fmt.Println("----")
     fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
 
     return tasks
@@ -52,7 +62,6 @@ func CompleteTask(tasks []Task, args []string) []Task {
     return tasks
 }
 
-
 func AddTask(tasks []Task, args []string) []Task {
     if len(args) > 0 {
         description := strings.Join(args, " ")
@@ -66,7 +75,8 @@ func AddTask(tasks []Task, args []string) []Task {
 
 func InitCommands() []CommandDefinition {
     return []CommandDefinition{
-        CommandDefinition{"", 0, ListIncompleteTasks, false},
+        CommandDefinition{"list", 0, ListTasks, false},
+        CommandDefinition{"ls", 0, ListTasks, false},
         CommandDefinition{"complete", 1, CompleteTask, true},
         CommandDefinition{"add", 1, AddTask, true},
     }

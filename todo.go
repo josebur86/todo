@@ -24,12 +24,7 @@ func NewInput(args []string) *Input {
     return &Input{command, commandArgs}
 }
 
-
-
 func main() {
-
-
-
     input := NewInput(os.Args)
     commands := InitCommands()
     tasks := ReadTodoFile(GlobalTodoFile)
