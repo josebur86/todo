@@ -7,12 +7,12 @@ import(
     "time"
 )
 
-type command func([]Task, []string) []Task
+type command func([]Task, []string) ([]Task, bool)
 type CommandDefinition struct {
     Name string
+    Description string
     MinArgCount int
     Command command
-    RequiresWrite bool
 }
 
 func PassesFilter(task Task, filters []string) bool {
@@ -25,7 +25,7 @@ func PassesFilter(task Task, filters []string) bool {
     return true
 }
 
-func ListTasks(tasks []Task, args []string) []Task {
+func ListTasks(tasks []Task, args []string) ([]Task, bool) {
     taskCount := 0
     for _, task := range tasks {
         if !task.Complete && PassesFilter(task, args) {
@@ -36,20 +36,22 @@ func ListTasks(tasks []Task, args []string) []Task {
     fmt.Println("----")
     fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
 
-    return tasks
+    return tasks, false
 }
 
-func CompleteTask(tasks []Task, args []string) []Task {
+func CompleteTask(tasks []Task, args []string) ([]Task, bool) {
     lineNum, err := strconv.Atoi(args[0])
     if err != nil {
         fmt.Print("Invalid line number ", args[0])
-        return tasks
+        return tasks, false
     }
 
     found := false
     for i, _ := range tasks {
         if tasks[i].FileLine == lineNum {
             tasks[i].Complete = true
+            fmt.Print("\"", tasks[i].Description, "\" marked complete.")
+
             found = true
             break;
         }
@@ -59,26 +61,28 @@ func CompleteTask(tasks []Task, args []string) []Task {
         fmt.Print("No task on line ", lineNum)
     }
 
-    return tasks
+    return tasks, found
 }
 
-func AddTask(tasks []Task, args []string) []Task {
+func AddTask(tasks []Task, args []string) ([]Task, bool) {
+    added := false
     if len(args) > 0 {
         description := strings.Join(args, " ")
         task := Task{-1, description, time.Now(), false}
 
         tasks = append(tasks, task)
+        added = true
     }
 
-    return tasks
+    return tasks, added
 }
 
 func InitCommands() []CommandDefinition {
     return []CommandDefinition{
-        CommandDefinition{"list", 0, ListTasks, false},
-        CommandDefinition{"ls", 0, ListTasks, false},
-        CommandDefinition{"complete", 1, CompleteTask, true},
-        CommandDefinition{"add", 1, AddTask, true},
+        CommandDefinition{"list", "List all active tasks", 0, ListTasks},
+        CommandDefinition{"ls", "List all active tasks", 0, ListTasks},
+        CommandDefinition{"complete", "Mark the task at the specified line number complete", 1, CompleteTask},
+        CommandDefinition{"add", "Adds a task.", 1, AddTask},
     }
 }
 

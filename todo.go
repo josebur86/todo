@@ -29,14 +29,25 @@ func main() {
     commands := InitCommands()
     tasks := ReadTodoFile(GlobalTodoFile)
 
+    commandExecuted := false
     for _, commandDef := range commands {
         if input.Command == commandDef.Name && len(input.Args) >= commandDef.MinArgCount {
-            tasks = commandDef.Command(tasks, input.Args)
-            if commandDef.RequiresWrite {
+            tasks, writeRequired := commandDef.Command(tasks, input.Args)
+            if writeRequired {
                 if err := WriteTodos(GlobalTodoFile, tasks); err != nil {
                     fmt.Print(err)
                 }
             }
+
+            commandExecuted = true
+            break;
+        }
+    }
+
+    if !commandExecuted {
+        fmt.Println("Usage: ")
+        for _, commandDef := range commands {
+            fmt.Println("  ", commandDef.Name, " - ", commandDef.Description)
         }
     }
 }
