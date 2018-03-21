@@ -8,6 +8,22 @@ import(
     "time"
 )
 
+type taskDate struct{
+    Year int
+    Month time.Month
+    Day int
+}
+
+func NewTaskDate(date time.Time) *taskDate {
+    year, month, day := date.Date()
+    return &taskDate{year, month, day}
+}
+
+func (d *taskDate) Equal(date time.Time) bool {
+    year, month, day := date.Date()
+    return d.Year == year && d.Month == month && d.Day == day
+}
+
 func WriteTodos(filePath string, tasks []Task) error {
     file, err := os.Create(filePath)
     if err != nil {
@@ -17,7 +33,7 @@ func WriteTodos(filePath string, tasks []Task) error {
 
     writer := bufio.NewWriter(file)
 
-    datesWritten := []time.Time{}    
+    datesWritten := []taskDate{}
     for _, task := range tasks {
         dateWritten := false
         for _, date := range datesWritten {
@@ -37,7 +53,7 @@ func WriteTodos(filePath string, tasks []Task) error {
             writer.WriteString(strings.Repeat("=", len(dateLine)))
             writer.WriteByte('\n')
 
-            datesWritten = append(datesWritten, task.Date)
+            datesWritten = append(datesWritten, *NewTaskDate(task.Date))
         }
 
         completedSymbol := " "

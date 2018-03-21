@@ -4,6 +4,8 @@ import(
     "fmt"
     "os"
     "strconv"
+    "strings"
+    "time"
 )
 
 var GlobalTodoFile = "W:/todo.md"
@@ -75,11 +77,24 @@ func CompleteTask(tasks []Task, args []string) []Task {
     return tasks
 }
 
+
+func AddTask(tasks []Task, args []string) []Task {
+    if len(args) > 0 {
+        description := strings.Join(args, " ")
+        task := Task{-1, description, time.Now(), false}
+
+        tasks = append(tasks, task)
+    }
+
+    return tasks
+}
+
 func main() {
 
     commands := []CommandDefinition{
         CommandDefinition{"", 0, ListIncompleteTasks, false},
         CommandDefinition{"complete", 1, CompleteTask, true},
+        CommandDefinition{"add", 1, AddTask, true},
     }
 
     input := NewInput(os.Args)
