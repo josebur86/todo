@@ -77,12 +77,19 @@ func AddTask(tasks []Task, args []string) ([]Task, bool) {
     return tasks, added
 }
 
+func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
+    fmt.Println("TODO(joe): Not implemented yet!")
+
+    return tasks, false
+}
+
 func InitCommands() []CommandDefinition {
     return []CommandDefinition{
         CommandDefinition{"list", "List all active tasks", 0, ListTasks},
         CommandDefinition{"ls", "List all active tasks", 0, ListTasks},
         CommandDefinition{"complete", "Mark the task at the specified line number complete", 1, CompleteTask},
         CommandDefinition{"add", "Adds a task.", 1, AddTask},
+        CommandDefinition{"review", "Does a end/beginning of the day review of unfinished tasks.", 0, ReviewTask},
     }
 }
 
