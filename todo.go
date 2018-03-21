@@ -2,19 +2,16 @@ package main
 
 import(
     "fmt"
-    "log"
     "os"
     "strconv"
 )
 
 var GlobalTodoFile = "W:/todo.md"
-var GlobalTodoFileTest = "W:/todo_test.md"
 
 func FindTaskByLine(tasks []Task, line int) *Task {
-    for _, task := range tasks {
-        if task.FileLine == line {
-            log.Print("Task pointer: ", &task)
-            return &task
+    for i, _ := range tasks {
+        if tasks[i].FileLine == line {
+            return &tasks[i]
         }
     }
 
@@ -26,8 +23,8 @@ func main() {
     argCount := len(args)
 
     tasks := ReadTodoFile(GlobalTodoFile)
-    if argCount == 1 {
 
+    if argCount == 1 {
         // By default, print out all the uncompleted tasks
         taskCount := 0
         for _, task := range tasks {
@@ -49,13 +46,12 @@ func main() {
                     fmt.Println("Invalid line number")
                 } else  {
                     task := FindTaskByLine(tasks, taskLineNum)
-                    fmt.Println(task)
                     if task != nil {
-                        log.Print(tasks)
                         task.Complete = true
-                        log.Print(tasks)
-                        if err := WriteTodos(GlobalTodoFileTest, tasks); err != nil {
+                        if err := WriteTodos(GlobalTodoFile, tasks); err != nil {
                             fmt.Print("Unable to write Todos", err)
+                        } else {
+                            fmt.Print("Completed \"", task.Description, "\"")
                         }
                     } else {
                         fmt.Print("No task on line ", taskLineNum)
