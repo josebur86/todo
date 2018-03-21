@@ -15,7 +15,7 @@ type FileCursor struct {
 func NewFileCursor(filePath string) *FileCursor {
     file, err := os.Open(filePath)
     if err != nil {
-        log.Fatal("Error opening %s: ", filePath, err)
+        log.Fatal(err)
     }
 
     scanner := bufio.NewScanner(file)
