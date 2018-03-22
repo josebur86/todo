@@ -1,10 +1,12 @@
 package main
 
 import(
+    "bufio"
     "fmt"
     "strconv"
     "strings"
     "time"
+    "os"
 )
 
 type command func([]Task, []string) ([]Task, bool)
@@ -77,8 +79,62 @@ func AddTask(tasks []Task, args []string) ([]Task, bool) {
     return tasks, added
 }
 
+const (
+    reviewMove = 0
+    reviewKeep = 1
+    reviewAskAgain = 2
+    reviewQuit = 3
+)
+
+func reviewTask(t Task) int {
+    fmt.Printf("\n\t%s\n\n", t.ToString(true))
+
+    fmt.Printf("Move to today? [y/n/q]")
+    input := bufio.NewReader(os.Stdin)
+    resp, err := input.ReadString('\n')
+    if err != nil {
+        fmt.Println("Unable to process input", err)
+    }
+    resp = strings.ToLower(resp)
+
+    result := reviewAskAgain
+    if (len(resp) > 0) {
+        switch resp[0] {
+        case 'y':
+            result = reviewMove
+        case 'n':
+            result = reviewKeep
+        case 'q':
+            result = reviewQuit
+        }
+    }
+
+    return result
+}
+
 func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
-    fmt.Println("TODO(joe): Not implemented yet!")
+    headerPrinted := false
+    for i := 0; i < len(tasks); {
+        task := tasks[i]
+        if !task.Complete {
+            if !headerPrinted {
+                fmt.Println("The following tasks have not been complete:")
+                headerPrinted = true
+            }
+
+            reviewStatus := reviewTask(task)
+            if reviewStatus == reviewMove {
+                // TODO(joe): Actually move
+                i++
+            } else if reviewStatus == reviewAskAgain {
+                continue
+            } else if reviewStatus == reviewQuit {
+                break
+            } else {
+                i++
+            }
+        }
+    }
 
     return tasks, false
 }
