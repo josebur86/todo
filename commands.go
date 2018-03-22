@@ -85,7 +85,6 @@ func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
 
 func InitCommands() []CommandDefinition {
     return []CommandDefinition{
-        CommandDefinition{"list", "List all active tasks", 0, ListTasks},
         CommandDefinition{"ls", "List all active tasks", 0, ListTasks},
         CommandDefinition{"complete", "Mark the task at the specified line number complete", 1, CompleteTask},
         CommandDefinition{"add", "Adds a task.", 1, AddTask},
