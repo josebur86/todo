@@ -3,6 +3,7 @@ package main
 import(
     "fmt"
     "os"
+    "text/tabwriter"
 )
 
 var GlobalTodoFile = "W:/todo.md"
@@ -45,9 +46,12 @@ func main() {
     }
 
     if !commandExecuted {
-        fmt.Println("Usage: ")
+        fmt.Printf("Usage:\n\t%s <command> [args]\n", os.Args[0])
+        fmt.Println("Commands:")
+        writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
         for _, commandDef := range commands {
-            fmt.Println("  ", commandDef.Name, " - ", commandDef.Description)
+            fmt.Fprintf(writer, "\t%s\t- %s\n", commandDef.Name, commandDef.Description)
         }
+        writer.Flush()
     }
 }
