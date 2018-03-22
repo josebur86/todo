@@ -1,12 +1,11 @@
 package main
 
 import(
-    "bufio"
     "fmt"
+    "sort"
     "strconv"
     "strings"
     "time"
-    "os"
 )
 
 type command func([]Task, []string) ([]Task, bool)
@@ -82,28 +81,31 @@ func AddTask(tasks []Task, args []string) ([]Task, bool) {
 const (
     reviewMove = 0
     reviewKeep = 1
-    reviewAskAgain = 2
-    reviewQuit = 3
+    reviewComplete = 2
+    // TODO(joe): Implement these
+    //reviewDelete = 3
+    //reviewHelp = 4
+    reviewQuit = 5
+    reviewAskAgain = 6
 )
 
 func reviewTask(t Task) int {
     fmt.Printf("\n\t%s\n\n", t.ToString(true))
 
-    fmt.Printf("Move to today? [y/n/q]")
-    input := bufio.NewReader(os.Stdin)
-    resp, err := input.ReadString('\n')
-    if err != nil {
-        fmt.Println("Unable to process input", err)
-    }
+    fmt.Printf("Done? [y/n/m/q]")
+    var resp string
+    fmt.Scanf("%s", &resp)
     resp = strings.ToLower(resp)
 
     result := reviewAskAgain
     if (len(resp) > 0) {
         switch resp[0] {
         case 'y':
-            result = reviewMove
+            result = reviewComplete
         case 'n':
             result = reviewKeep
+        case 'm':
+            result = reviewMove
         case 'q':
             result = reviewQuit
         }
@@ -112,19 +114,32 @@ func reviewTask(t Task) int {
     return result
 }
 
+type ByDate []Task
+
+func (d ByDate) Len() int { return len(d) }
+func (d ByDate) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
+func (d ByDate) Less(i, j int) bool { return d[i].Date.Before(d[j].Date) }
+
 func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
+    shouldWrite := false
     headerPrinted := false
+
     for i := 0; i < len(tasks); {
-        task := tasks[i]
+        task := &tasks[i]
         if !task.Complete {
             if !headerPrinted {
                 fmt.Println("The following tasks have not been complete:")
                 headerPrinted = true
             }
 
-            reviewStatus := reviewTask(task)
+            reviewStatus := reviewTask(*task)
             if reviewStatus == reviewMove {
-                // TODO(joe): Actually move
+                task.Date = time.Now()
+                shouldWrite = true
+                i++
+            } else if reviewStatus == reviewComplete {
+                task.Complete = true
+                shouldWrite = true
                 i++
             } else if reviewStatus == reviewAskAgain {
                 continue
@@ -135,7 +150,13 @@ func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
             }
         }
     }
+    sort.Stable(ByDate(tasks))
 
+    return tasks, shouldWrite
+}
+
+func FileTask(tasks []Task, args []string) ([]Task, bool) {
+    fmt.Println("TODO(joe): Implement!")
     return tasks, false
 }
 
@@ -145,6 +166,7 @@ func InitCommands() []CommandDefinition {
         CommandDefinition{"complete", "Mark the task at the specified line number complete", 1, CompleteTask},
         CommandDefinition{"add", "Adds a task.", 1, AddTask},
         CommandDefinition{"review", "Does a end/beginning of the day review of unfinished tasks.", 0, ReviewTask},
+        CommandDefinition{"file", "Prints the contents of the TODO file.", 0, FileTask},
     }
 }
 
