@@ -3,10 +3,9 @@ package main
 import(
     "fmt"
     "os"
+    "path"
     "text/tabwriter"
 )
-
-var GlobalTodoFile = "W:/todo.md"
 
 type Input struct {
     Command string
@@ -26,16 +25,24 @@ func NewInput(args []string) *Input {
 }
 
 func main() {
+    todoDir, defined := os.LookupEnv("TODO_DIR")
+    if !defined {
+        fmt.Println("TODO_DIR is not defined")
+        return
+    }
+
+    TodoFile := path.Join(todoDir, "todo.md")
+
     input := NewInput(os.Args)
     commands := InitCommands()
-    tasks := ReadTodoFile(GlobalTodoFile)
+    tasks := ReadTodoFile(TodoFile)
 
     commandExecuted := false
     for _, commandDef := range commands {
         if input.Command == commandDef.Name && len(input.Args) >= commandDef.MinArgCount {
             tasks, writeRequired := commandDef.Command(tasks, input.Args)
             if writeRequired {
-                if err := WriteTodos(GlobalTodoFile, tasks); err != nil {
+                if err := WriteTodos(TodoFile, tasks); err != nil {
                     fmt.Print(err)
                 }
             }

@@ -35,7 +35,9 @@ func ListTasks(tasks []Task, args []string) ([]Task, bool) {
         }
     }
     fmt.Println("----")
-    fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
+    // FIXME(joe): How can we pass the filepath for this?
+    //fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
+    fmt.Printf("TODO: %d tasks.\n", taskCount)
 
     return tasks, false
 }

@@ -85,7 +85,7 @@ func ParseWeekdaySection(cursor *FileCursor) ([]Task, error) {
 }
 
 func ReadTodoFile(filePath string) []Task {
-    cursor := NewFileCursor(GlobalTodoFile)
+    cursor := NewFileCursor(filePath)
     defer cursor.Close()
 
     tasks := []Task{}
