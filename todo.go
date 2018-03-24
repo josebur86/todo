@@ -50,7 +50,7 @@ func (t *Todo) Execute() error {
 
     commandExecuted := false
     for _, command := range t.commands {
-        if input.Command == command.Name && len(input.Args) >= command.MinArgCount {
+        if input.Command == command.Name {
             err := command.Exec(t, input.Args)
             if err != nil {
                 return err

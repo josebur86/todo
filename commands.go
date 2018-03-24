@@ -13,7 +13,6 @@ type Exec func(*Todo, []string) error
 type Command struct {
     Name string
     Description string
-    MinArgCount int
     Exec Exec
 }
 
@@ -42,6 +41,10 @@ func ListTasks(t *Todo, args []string) (error) {
 }
 
 func CompleteTask(t *Todo, args []string) error {
+    if len(args) < 1 {
+        return errors.New("No line number")
+    }
+
     lineNum, err := strconv.Atoi(args[0])
     if err != nil {
         return errors.New(fmt.Sprintf("Invalid line number %s", args[0]))
@@ -122,8 +125,8 @@ func reviewTask(t Task) int {
     return result
 }
 
+// TODO(joe): Simplify?
 type ByDate []Task
-
 func (d ByDate) Len() int { return len(d) }
 func (d ByDate) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 func (d ByDate) Less(i, j int) bool { return d[i].Date.Before(d[j].Date) }
