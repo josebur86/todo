@@ -8,12 +8,12 @@ import(
     "time"
 )
 
-type command func([]Task, []string) ([]Task, bool)
-type CommandDefinition struct {
+type Exec func([]Task, []string) ([]Task, bool)
+type Command struct {
     Name string
     Description string
     MinArgCount int
-    Command command
+    Exec Exec
 }
 
 func PassesFilter(task Task, filters []string) bool {
@@ -165,16 +165,5 @@ func FileTask(tasks []Task, args []string) ([]Task, bool) {
 func ArchiveTasks(tasks []Task, args []string) ([]Task, bool) {
     fmt.Println("TODO(joe): Not implemented yet!")
     return tasks, false
-}
-
-func InitCommands() []CommandDefinition {
-    return []CommandDefinition{
-        CommandDefinition{"ls", "List all active tasks", 0, ListTasks},
-        CommandDefinition{"complete", "Mark the task at the specified line number complete", 1, CompleteTask},
-        CommandDefinition{"add", "Adds a task.", 1, AddTask},
-        CommandDefinition{"review", "Does a end/beginning of the day review of unfinished tasks.", 0, ReviewTask},
-        CommandDefinition{"archive", "Moves completed tasks out of the main TODO file and into a backup/archive file", 0, ReviewTask},
-        CommandDefinition{"file", "Prints the contents of the TODO file.", 0, FileTask},
-    }
 }
 

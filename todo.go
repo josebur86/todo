@@ -1,6 +1,7 @@
 package main
 
 import(
+    "errors"
     "fmt"
     "os"
     "path"
@@ -24,25 +25,35 @@ func NewInput(args []string) *Input {
     return &Input{command, commandArgs}
 }
 
-func main() {
+type Todo struct {
+    filePath string
+    tasks []Task
+    commands []Command
+}
+
+func NewTodo() (*Todo, error) {
     todoDir, defined := os.LookupEnv("TODO_DIR")
     if !defined {
-        fmt.Println("TODO_DIR is not defined")
-        return
+        return nil, errors.New("TODO_DIR is not defined")
     }
 
-    TodoFile := path.Join(todoDir, "todo.md")
+    return &Todo{path.Join(todoDir, "todo.md"), []Task{}, []Command{}}, nil
+}
 
+func (t *Todo) AddCommand(command Command) {
+    t.commands = append(t.commands, command)
+}
+
+func (t *Todo) Execute() error {
     input := NewInput(os.Args)
-    commands := InitCommands()
-    tasks := ReadTodoFile(TodoFile)
+    tasks := ReadTodoFile(t.filePath)
 
     commandExecuted := false
-    for _, commandDef := range commands {
-        if input.Command == commandDef.Name && len(input.Args) >= commandDef.MinArgCount {
-            tasks, writeRequired := commandDef.Command(tasks, input.Args)
+    for _, command := range t.commands {
+        if input.Command == command.Name && len(input.Args) >= command.MinArgCount {
+            tasks, writeRequired := command.Exec(tasks, input.Args)
             if writeRequired {
-                if err := WriteTodos(TodoFile, tasks); err != nil {
+                if err := WriteTodos(t.filePath, tasks); err != nil {
                     fmt.Print(err)
                 }
             }
@@ -56,9 +67,12 @@ func main() {
         fmt.Printf("Usage:\n\t%s <command> [args]\n", os.Args[0])
         fmt.Println("Commands:")
         writer := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-        for _, commandDef := range commands {
-            fmt.Fprintf(writer, "\t%s\t- %s\n", commandDef.Name, commandDef.Description)
+        for _, command := range t.commands {
+            fmt.Fprintf(writer, "\t%s\t- %s\n", command.Name, command.Description)
         }
         writer.Flush()
     }
+
+    return nil
 }
+
