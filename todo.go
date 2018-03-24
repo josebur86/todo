@@ -26,8 +26,8 @@ func NewInput(args []string) *Input {
 }
 
 type Todo struct {
-    filePath string
-    tasks []Task
+    FilePath string
+    Tasks []Task
     commands []Command
 }
 
@@ -46,16 +46,14 @@ func (t *Todo) AddCommand(command Command) {
 
 func (t *Todo) Execute() error {
     input := NewInput(os.Args)
-    tasks := ReadTodoFile(t.filePath)
+    t.Tasks = ReadTodoFile(t.FilePath)
 
     commandExecuted := false
     for _, command := range t.commands {
         if input.Command == command.Name && len(input.Args) >= command.MinArgCount {
-            tasks, writeRequired := command.Exec(tasks, input.Args)
-            if writeRequired {
-                if err := WriteTodos(t.filePath, tasks); err != nil {
-                    fmt.Print(err)
-                }
+            err := command.Exec(t, input.Args)
+            if err != nil {
+                return err
             }
 
             commandExecuted = true

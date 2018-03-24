@@ -1,6 +1,7 @@
 package main
 
 import(
+    "errors"
     "fmt"
     "sort"
     "strconv"
@@ -8,7 +9,7 @@ import(
     "time"
 )
 
-type Exec func([]Task, []string) ([]Task, bool)
+type Exec func(*Todo, []string) error
 type Command struct {
     Name string
     Description string
@@ -26,34 +27,31 @@ func PassesFilter(task Task, filters []string) bool {
     return true
 }
 
-func ListTasks(tasks []Task, args []string) ([]Task, bool) {
+func ListTasks(t *Todo, args []string) (error) {
     taskCount := 0
-    for _, task := range tasks {
+    for _, task := range t.Tasks {
         if !task.Complete && PassesFilter(task, args) {
             fmt.Printf("%d %s\n", task.FileLine, task.Description)
             taskCount++
         }
     }
     fmt.Println("----")
-    // FIXME(joe): How can we pass the filepath for this?
-    //fmt.Printf("TODO: %d tasks in %s\n", taskCount, GlobalTodoFile)
-    fmt.Printf("TODO: %d tasks.\n", taskCount)
+    fmt.Printf("TODO: %d tasks in %s.\n", taskCount, t.FilePath)
 
-    return tasks, false
+    return nil
 }
 
-func CompleteTask(tasks []Task, args []string) ([]Task, bool) {
+func CompleteTask(t *Todo, args []string) error {
     lineNum, err := strconv.Atoi(args[0])
     if err != nil {
-        fmt.Print("Invalid line number ", args[0])
-        return tasks, false
+        return errors.New(fmt.Sprintf("Invalid line number %s", args[0]))
     }
 
     found := false
-    for i, _ := range tasks {
-        if tasks[i].FileLine == lineNum {
-            tasks[i].Complete = true
-            fmt.Print("\"", tasks[i].Description, "\" marked complete.")
+    for i, _ := range t.Tasks {
+        if t.Tasks[i].FileLine == lineNum {
+            t.Tasks[i].Complete = true
+            fmt.Print("\"", t.Tasks[i].Description, "\" marked complete.")
 
             found = true
             break;
@@ -61,23 +59,31 @@ func CompleteTask(tasks []Task, args []string) ([]Task, bool) {
     }
 
     if !found {
-        fmt.Print("No task on line ", lineNum)
+        return errors.New(fmt.Sprintf("No task on line %d", lineNum))
     }
 
-    return tasks, found
+    err = WriteTodos(t.FilePath, t.Tasks)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
 
-func AddTask(tasks []Task, args []string) ([]Task, bool) {
-    added := false
+func AddTask(t *Todo, args []string) error {
     if len(args) > 0 {
         description := strings.Join(args, " ")
         task := Task{-1, description, time.Now(), false}
 
-        tasks = append(tasks, task)
-        added = true
+        t.Tasks = append(t.Tasks, task)
+
+        err := WriteTodos(t.FilePath, t.Tasks)
+        if err != nil {
+            return err
+        }
     }
 
-    return tasks, added
+    return nil
 }
 
 const (
@@ -122,12 +128,12 @@ func (d ByDate) Len() int { return len(d) }
 func (d ByDate) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 func (d ByDate) Less(i, j int) bool { return d[i].Date.Before(d[j].Date) }
 
-func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
+func ReviewTask(t *Todo, args []string) error {
     shouldWrite := false
     headerPrinted := false
 
-    for i := 0; i < len(tasks); {
-        task := &tasks[i]
+    for i := 0; i < len(t.Tasks); {
+        task := &t.Tasks[i]
         if !task.Complete {
             if !headerPrinted {
                 fmt.Println("The following tasks have not been complete:")
@@ -152,14 +158,21 @@ func ReviewTask(tasks []Task, args []string) ([]Task, bool) {
             }
         }
     }
-    sort.Stable(ByDate(tasks))
 
-    return tasks, shouldWrite
+    if shouldWrite {
+        sort.Stable(ByDate(t.Tasks))
+        err := WriteTodos(t.FilePath, t.Tasks)
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
 }
 
-func FileTask(tasks []Task, args []string) ([]Task, bool) {
+func FileTask(t *Todo, args []string) error {
     fmt.Println("TODO(joe): Implement!")
-    return tasks, false
+    return nil
 }
 
 func ArchiveTasks(tasks []Task, args []string) ([]Task, bool) {
