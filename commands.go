@@ -178,8 +178,8 @@ func FileTask(t *Todo, args []string) error {
     return nil
 }
 
-func ArchiveTasks(tasks []Task, args []string) ([]Task, bool) {
+func ArchiveTasks(t *Todo, args []string) error {
     fmt.Println("TODO(joe): Not implemented yet!")
-    return tasks, false
+    return nil
 }
 
