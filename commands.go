@@ -3,6 +3,7 @@ package main
 import(
     "errors"
     "fmt"
+    "path"
     "sort"
     "strconv"
     "strings"
@@ -179,7 +180,35 @@ func FileTask(t *Todo, args []string) error {
 }
 
 func ArchiveTasks(t *Todo, args []string) error {
-    fmt.Println("TODO(joe): Not implemented yet!")
+    fmt.Println("The following tasks will be archived:")
+
+    toArchive := []Task{}
+    for i := 0; i < len(t.Tasks); {
+        task := t.Tasks[i]
+        if task.Complete {
+            fmt.Printf("\t%d %s\n", task.FileLine, task.Description)
+
+            t.Tasks = append(t.Tasks[:i], t.Tasks[i+1:]...)
+            toArchive = append(toArchive, task)
+        } else {
+            i++
+        }
+    }
+
+    if len(toArchive) > 0 {
+        // Write the archive file.
+        archivePath := path.Join(t.DirectoryPath, fmt.Sprintf("%s.md", toArchive[0].Date.Format("Jan-02-2006")))
+        fmt.Println(archivePath)
+        if err := WriteTodos(archivePath, toArchive); err != nil {
+            return err
+        }
+
+        // Write back the main todo file.
+        if err := WriteTodos(t.FilePath, t.Tasks); err != nil {
+            return err
+        }
+    }
+
     return nil
 }
 

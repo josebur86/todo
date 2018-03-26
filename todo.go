@@ -26,6 +26,7 @@ func NewInput(args []string) *Input {
 }
 
 type Todo struct {
+    DirectoryPath string
     FilePath string
     Tasks []Task
     commands []Command
@@ -37,7 +38,7 @@ func NewTodo() (*Todo, error) {
         return nil, errors.New("TODO_DIR is not defined")
     }
 
-    return &Todo{path.Join(todoDir, "todo.md"), []Task{}, []Command{}}, nil
+    return &Todo{todoDir, path.Join(todoDir, "todo.md"), []Task{}, []Command{}}, nil
 }
 
 func (t *Todo) AddCommand(command Command) {
