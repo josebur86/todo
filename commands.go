@@ -197,6 +197,7 @@ func ArchiveTasks(t *Todo, args []string) error {
 
     if len(toArchive) > 0 {
         // Write the archive file.
+        // TODO(joe): Check to see if the file is already there and append to it.
         archivePath := path.Join(t.DirectoryPath, fmt.Sprintf("%s.md", toArchive[0].Date.Format("Jan-02-2006")))
         fmt.Println(archivePath)
         if err := WriteTodos(archivePath, toArchive); err != nil {
