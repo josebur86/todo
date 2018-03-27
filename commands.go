@@ -10,11 +10,20 @@ import(
     "time"
 )
 
-type Exec func(*Todo, []string) error
+type Exec func(*Todo, *Command, []string) error
 type Command struct {
     Name string
     Description string
     Exec Exec
+    Subcommands []Command
+}
+
+func NewCommand(name, description string, exec Exec) Command {
+    return Command{name, description, exec, []Command{}}
+}
+
+func (c *Command) AddCommand(command Command) {
+    c.Subcommands = append(c.Subcommands, command)
 }
 
 func PassesFilter(task Task, filters []string) bool {
@@ -27,7 +36,7 @@ func PassesFilter(task Task, filters []string) bool {
     return true
 }
 
-func ListTasks(t *Todo, args []string) (error) {
+func ListTasks(t *Todo, command *Command, args []string) (error) {
     taskCount := 0
     for _, task := range t.Tasks {
         if !task.Complete && PassesFilter(task, args) {
@@ -41,7 +50,7 @@ func ListTasks(t *Todo, args []string) (error) {
     return nil
 }
 
-func CompleteTask(t *Todo, args []string) error {
+func CompleteTask(t *Todo, command *Command, args []string) error {
     if len(args) < 1 {
         return errors.New("No line number")
     }
@@ -74,7 +83,7 @@ func CompleteTask(t *Todo, args []string) error {
     return nil
 }
 
-func AddTask(t *Todo, args []string) error {
+func AddTask(t *Todo, command *Command, args []string) error {
     if len(args) > 0 {
         description := strings.Join(args, " ")
         task := Task{-1, description, time.Now(), false}
@@ -132,7 +141,7 @@ func (d ByDate) Len() int { return len(d) }
 func (d ByDate) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 func (d ByDate) Less(i, j int) bool { return d[i].Date.Before(d[j].Date) }
 
-func ReviewTask(t *Todo, args []string) error {
+func ReviewTask(t *Todo, command *Command, args []string) error {
     shouldWrite := false
     headerPrinted := false
 
@@ -174,12 +183,12 @@ func ReviewTask(t *Todo, args []string) error {
     return nil
 }
 
-func FileTask(t *Todo, args []string) error {
+func FileTask(t *Todo, command *Command, args []string) error {
     fmt.Println("TODO(joe): Implement!")
     return nil
 }
 
-func ArchiveTasks(t *Todo, args []string) error {
+func ArchiveTasks(t *Todo, command *Command, args []string) error {
     fmt.Println("The following tasks will be archived:")
 
     toArchive := []Task{}

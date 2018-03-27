@@ -50,10 +50,10 @@ func (t *Todo) Execute() error {
     t.Tasks = ReadTodoFile(t.FilePath)
 
     commandExecuted := false
-    for _, command := range t.commands {
+    for i, _ := range t.commands {
+        command := &t.commands[i]
         if input.Command == command.Name {
-            err := command.Exec(t, input.Args)
-            if err != nil {
+            if err := command.Exec(t, command, input.Args); err != nil {
                 return err
             }
 
