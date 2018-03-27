@@ -30,6 +30,7 @@ type Todo struct {
     FilePath string
     Tasks []Task
     commands []Command
+    State State
 }
 
 func NewTodo() (*Todo, error) {
@@ -38,7 +39,10 @@ func NewTodo() (*Todo, error) {
         return nil, errors.New("TODO_DIR is not defined")
     }
 
-    return &Todo{todoDir, path.Join(todoDir, "todo.md"), []Task{}, []Command{}}, nil
+    todo := Todo{todoDir, path.Join(todoDir, "todo.md"), []Task{}, []Command{}, State{}}
+    ReadTodoState(&todo)
+
+    return &todo, nil
 }
 
 func (t *Todo) AddCommand(command Command) {

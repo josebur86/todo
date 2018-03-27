@@ -19,16 +19,8 @@ func main() {
     todo.AddCommand(NewCommand("archive", "Moves completed tasks out of the main TODO file and into a backup/archive file", ArchiveTasks))
     todo.AddCommand(NewCommand("file", "Prints the contents of the TODO file.", FileTask))
 
-    trello := NewCommand("trello", "Subcommand that works with Trello.", TrelloCommand)
-
-    // Boards
-    trelloBoards := NewCommand("board", "Subcommand that works with Trello Boards.", TrelloBoardCommand)
-    trelloBoards.AddCommand(NewCommand("ls", "List all the Trello Boards.", ListTrelloBoardsCommand))
-    trello.AddCommand(trelloBoards)
-
-
-    todo.AddCommand(trello)
-
+    // Trello
+    todo.AddCommand(NewCommand("board", "Command for working with boards.", TrelloBoardCommand))
 
     err = todo.Execute()
     if err != nil {

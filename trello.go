@@ -30,11 +30,27 @@ func TrelloCommand(t *Todo, command *Command, args []string) error {
 }
 
 func TrelloBoardCommand(t *Todo, command *Command, args []string) error {
-    if len(args) > 0 {
-        for i, _ := range command.Subcommands {
-            subcommand := &command.Subcommands[i]
-            if (args[0] == subcommand.Name) {
-                if err := subcommand.Exec(t, subcommand, args[1:]); err != nil {
+    boards, err := getOpenBoards()
+    if err != nil {
+        return err
+    }
+
+    if len(args) == 0 {
+        for _, board := range boards {
+            if board.Name == t.State.CurrentBoardName {
+                fmt.Println("* ", board.Name)
+            } else {
+                fmt.Println("  ", board.Name)
+            }
+        }
+    } else {
+        for _, board := range boards {
+            if board.Name == args[0] {
+                t.State.CurrentBoardName = board.Name
+                t.State.CurrentBoardID = board.ID
+                fmt.Println("Switched to board", board.Name)
+
+                if err = WriteTodoState(t); err != nil {
                     return err
                 }
 
@@ -46,24 +62,27 @@ func TrelloBoardCommand(t *Todo, command *Command, args []string) error {
     return nil
 }
 
-func ListTrelloBoardsCommand(t *Todo, command *Command, args []string) error {
+func getOpenBoards() ([]Board, error) {
     response, err := http.Get(fmt.Sprintf("https://api.trello.com/1/members/%s/boards?key=%s&token=%s", TRELLO_API_USER, TRELLO_API_KEY, TRELLO_API_TOKEN))
     if err != nil {
-        return err
+        return nil, err
     }
 
     defer response.Body.Close()
 
     boards := []Board{}
     if err := json.NewDecoder(response.Body).Decode(&boards); err != nil {
-        return err
+        return nil, err
     }
 
-    for _, board := range boards {
-        if !board.Closed {
-            fmt.Println(board.Name, board.ID)
+    // Remove closed boards
+    for i := 0; i < len(boards); {
+        if boards[i].Closed {
+            boards = append(boards[:i], boards[i+1:]...)
+        } else {
+            i++
         }
     }
 
-    return nil
+    return boards, nil
 }
