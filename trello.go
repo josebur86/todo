@@ -79,7 +79,7 @@ func TrelloBoardCommand(t *Todo, command *Command, args []string) error {
 }
 
 func TrelloListInProgress(t *Todo, command *Command, args []string) error {
-    tasks, err := getInProgressTasksFrom(t.State.CurrentBoardID)
+    tasks, err := getTodoTasksFrom(t.State.CurrentBoardID)
     if err != nil {
         return err
     }
@@ -118,7 +118,7 @@ func getOpenBoards() ([]Board, error) {
     return boards, nil
 }
 
-func getInProgressTasksFrom(boardID string) ([]Task, error) {
+func getTodoTasksFrom(boardID string) ([]Task, error) {
     response, err := http.Get(fmt.Sprintf("%s/boards/%s/lists?cards=none&key=%s&token=%s", BASE_URL, boardID, TRELLO_API_KEY, TRELLO_API_TOKEN))
     if err != nil {
         return nil, err
@@ -131,6 +131,11 @@ func getInProgressTasksFrom(boardID string) ([]Task, error) {
         return nil, err
     }
 
+    todoTasks := []Task{}
+
+    // TODO(joe): Do both of these at the same time?
+    // TODO(joe): How do we order these?
+
     // Find the `In Progress` list
     for _, list := range lists {
         if list.Name == "In Progress" {
@@ -139,11 +144,23 @@ func getInProgressTasksFrom(boardID string) ([]Task, error) {
                 return nil, err
             }
 
-            return tasks, nil
+            todoTasks = append(todoTasks, tasks...)
         }
     }
 
-    return nil, nil
+    // Find the `Next` list
+    for _, list := range lists {
+        if list.Name == "Next" {
+            tasks, err := getTasksFrom(list.ID)
+            if err != nil {
+                return nil, err
+            }
+
+            todoTasks = append(todoTasks, tasks...)
+        }
+    }
+
+    return todoTasks, nil
 }
 
 func getTasksFrom(listID string) ([]Task, error) {
