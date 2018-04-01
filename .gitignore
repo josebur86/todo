@@ -1,4 +1,4 @@
 *.exe
 *.swp
 
-config.go
+trello_config.go
