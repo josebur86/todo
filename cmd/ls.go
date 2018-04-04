@@ -13,7 +13,9 @@ func init() {
 }
 
 type Task struct {
-    Description string
+    Name string
+    Handle int
+    Locator string
 }
 
 var lsCmd = &cobra.Command{
@@ -35,7 +37,7 @@ func runLS(cmd *cobra.Command, args []string) {
         }
 
         for _, task := range tasks {
-            fmt.Printf("%s\n", task.Description)
+            fmt.Printf("%d %s\n", task.Handle, task.Name)
         }
         fmt.Println("----")
         fmt.Printf("TODO: %d tasks on board %s.\n", len(tasks), boardName)

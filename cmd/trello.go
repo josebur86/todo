@@ -26,6 +26,7 @@ type list struct {
 type card struct {
     Name string  `json: "name"`
     ID string    `json: "id"`
+    IDShort int  `json: "idShort"`
 }
 
 func fetchTasksFrom(boardID string) ([]Task, error) {
@@ -74,7 +75,7 @@ func getTasksFrom(listID string) ([]Task, error) {
 
     tasks := []Task{}
     for _, card := range cards {
-        tasks = append(tasks, Task{card.Name})
+        tasks = append(tasks, Task{card.Name, card.IDShort, card.ID})
     }
 
     return tasks, nil
