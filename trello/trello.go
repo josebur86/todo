@@ -1,4 +1,4 @@
-package cmd
+package trello
 
 import (
     "encoding/json"
@@ -7,9 +7,12 @@ import (
     "net/http"
 )
 
-
 const (
-    BASE_URL = "https://api.trello.com/1"
+    BaseURL = "https://api.trello.com/1"
+
+    ListNameDone = "Done"
+    ListNameInProgress = "In Progress"
+    ListNameNext = "Next"
 )
 
 type board struct {
@@ -29,8 +32,8 @@ type card struct {
     IDShort int  `json: "idShort"`
 }
 
-func fetchTasksFrom(boardID string) ([]Task, error) {
-    response, err := http.Get(fmt.Sprintf("%s/boards/%s/lists?cards=none&key=%s&token=%s", BASE_URL, boardID, TRELLO_API_KEY, TRELLO_API_TOKEN))
+func FetchCardsFromBoard(boardID string) ([]card, error) {
+    response, err := http.Get(fmt.Sprintf("%s/boards/%s/lists?cards=none&key=%s&token=%s", BaseURL, boardID, TrelloApiKey, TrelloApiToken))
     if err != nil {
         return nil, err
     }
@@ -42,25 +45,23 @@ func fetchTasksFrom(boardID string) ([]Task, error) {
         return nil, err
     }
 
-    todoTasks := []Task{}
-
     // Find the `In Progress` list
     for _, list := range lists {
-        if list.Name == "In Progress" {
-            tasks, err := getTasksFrom(list.ID)
+        if list.Name == ListNameInProgress {
+            cards, err := getCardsFromList(list.ID)
             if err != nil {
                 return nil, err
             }
 
-            todoTasks = append(todoTasks, tasks...)
+            return cards, nil
         }
     }
 
-    return todoTasks, nil
+    return []card{}, nil
 }
 
-func getTasksFrom(listID string) ([]Task, error) {
-    response, err := http.Get(fmt.Sprintf("%s/lists/%s/cards?key=%s&token=%s", BASE_URL, listID, TRELLO_API_KEY, TRELLO_API_TOKEN))
+func getCardsFromList(listID string) ([]card, error) {
+    response, err := http.Get(fmt.Sprintf("%s/lists/%s/cards?key=%s&token=%s", BaseURL, listID, TrelloApiKey, TrelloApiToken))
     if err != nil {
         return nil, err
     }
@@ -73,16 +74,11 @@ func getTasksFrom(listID string) ([]Task, error) {
         return nil, err
     }
 
-    tasks := []Task{}
-    for _, card := range cards {
-        tasks = append(tasks, Task{card.Name, card.IDShort, card.ID})
-    }
-
-    return tasks, nil
+    return cards, nil
 }
 
-func fetchOpenBoards() ([]board, error) {
-    response, err := http.Get(fmt.Sprintf("%s/members/%s/boards?key=%s&token=%s", BASE_URL, TRELLO_API_USER, TRELLO_API_KEY, TRELLO_API_TOKEN))
+func FetchOpenBoards() ([]board, error) {
+    response, err := http.Get(fmt.Sprintf("%s/members/%s/boards?key=%s&token=%s", BaseURL, TrelloApiUser, TrelloApiKey, TrelloApiToken))
     if err != nil {
         return nil, err
     }

@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
 
+    "github.com/josebur86/todo/trello"
     "github.com/spf13/cobra"
     "github.com/spf13/viper"
 )
@@ -30,19 +31,19 @@ func runLS(cmd *cobra.Command, args []string) {
     if len(args) == 0 || args[0] == "tasks" {
         boardID := viper.GetString("CurrentBoardID")
 
-        tasks, err := fetchTasksFrom(boardID)
+        cards, err := trello.FetchCardsFromBoard(boardID)
         if err != nil {
-            fmt.Println("Unable to fetch tasks from", boardName, err)
+            fmt.Println("Unable to fetch cards from", boardName, err)
             os.Exit(1)
         }
 
-        for _, task := range tasks {
-            fmt.Printf("%d %s\n", task.Handle, task.Name)
+        for _, card := range cards {
+            fmt.Printf("%d %s\n", card.IDShort, card.Name)
         }
         fmt.Println("----")
-        fmt.Printf("TODO: %d tasks on board %s.\n", len(tasks), boardName)
+        fmt.Printf("TODO: %d cards on board %s.\n", len(cards), boardName)
     } else if args[0] == "boards" {
-        boards, err := fetchOpenBoards()
+        boards, err := trello.FetchOpenBoards()
         if err != nil {
             fmt.Println("Unable to fetch boards", err)
             os.Exit(1)

@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
 
+    "github.com/josebur86/todo/trello"
     "github.com/spf13/cobra"
     "github.com/spf13/viper"
 )
@@ -22,7 +23,7 @@ var switchCmd = &cobra.Command{
 func runSwitch(cmd *cobra.Command, args []string) {
     newBoard := args[0]
 
-    boards, err := fetchOpenBoards()
+    boards, err := trello.FetchOpenBoards()
     if err != nil {
         fmt.Println("Unable to fetch boards", err)
         os.Exit(1)
